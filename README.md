@@ -1,6 +1,9 @@
 # Whippet.js
 ## Static site generator
 
+
+## Documentation not written properly yet!
+
 ## How does it work?
 
 Config
