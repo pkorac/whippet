@@ -1,0 +1,7 @@
+{
+	"pages":[
+		{ "title": "Welcome", "url": "index.html" },
+		{ "title": "About", "url": "about.html" },
+		{ "title": "Contact", "url": "blog/index.html" }
+	]
+}
