@@ -1,4 +1,8 @@
 {
-	"site-title": "My site",
-	"site-author": "Me"
+	"site": {
+		"title": "My site",
+		"author": "Peter"
+	},
+	"blog": true,
+	"postsPerPage": 4
 }
