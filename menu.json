@@ -1,0 +1,29 @@
+{
+	"menu": [
+		{ 
+			"title": "Welcome page",
+			"url": "index.html"			
+		},
+		{ 
+			"title": "About",
+			"url": "index.html"			
+		},
+		{ 
+			"title": "Blog",
+			"url": "blog/index.html"			
+		},
+		{ 
+			"title": "Nested one",
+			"subpages": [
+				{
+					"title": "Nested One",
+					"url": "somewhere.html"
+				},
+				{
+					"title": "Nested Two",
+					"url": "somewhereElse.html"
+				}
+			]		
+		}
+	]
+}

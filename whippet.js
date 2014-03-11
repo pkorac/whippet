@@ -1,5 +1,11 @@
-/* Static site generator */
+/* 
 
+   # Whippet.js
+
+  ## Static site generator
+     Created by Peter Koraca
+
+*/
 
 var frd = require('./whippet/filer.js'),
 	mdp = require('./whippet/mdparser.js'),
@@ -10,7 +16,9 @@ var frd = require('./whippet/filer.js'),
 	fs = require('fs');
 
 
-// some defaults
+
+// DEFAULTS
+//////////////////////////////////////////////////////
 var defaultPageTemplage = 'default-page.html';
 var defaultIndexTemplate = 'default-index.html';
 var defaultBlogIndexTemplate = 'default-blog-index.html';
@@ -24,21 +32,24 @@ var includesFolder = 'includes';
 // Read configuration
 var config = JSON.parse( fs.readFileSync( 'config.json', {encoding: 'utf8'} ).toString() );
 
-// Read sitemap
-var sitemap = JSON.parse( fs.readFileSync( 'sitemap.json', {encoding: 'utf8'} ).toString() );
+// Read menu
+var menu = JSON.parse( fs.readFileSync( 'menu.json', {encoding: 'utf8'} ).toString() );
 
 
-// Create the core structure
+// CORE STRUCTURE
+//////////////////////////////////////////////////////
 frd.createStructure();
 
 
-// Copy assets and lib
+// COPY ASSETS AND LIBRARY (CSS, JS, ETC.)
+//////////////////////////////////////////////////////
 frd.copy( 'assets', 'site/assets', function(err){});
 frd.copy( 'lib', 'site/lib', function(err){});
 
 
 
-// load the includes
+// LOAD INCLUDES
+//////////////////////////////////////////////////////
 var includesList = frd.listFiles( includesFolder );
 var includes = {};
 for ( var i = 0; i < includesList.length; i++ ){
@@ -48,9 +59,11 @@ for ( var i = 0; i < includesList.length; i++ ){
 }
 
 
-// Create pages
+// PAGES
+//////////////////////////////////////////////////////
 var pagemds = frd.listFiles( pagesFolder );
 pagemds.push( 'index.md' );
+
 for( var i = 0; i < pagemds.length; i++ ){
 	
 	// Raw text string
@@ -60,8 +73,7 @@ for( var i = 0; i < pagemds.length; i++ ){
 	// Page variables (as defined in the md document)
 	var pageVars = fmp( raw );
 
-	// populate pageVariables with defaults and cofig
-	
+	// populate pageVariables with defaults, menu and cofig	
 	if ( !pageVars.template || pageVars.template.length === 0 )	{
 		pageVars.template = defaultPageTemplage;
 		
@@ -71,6 +83,10 @@ for( var i = 0; i < pagemds.length; i++ ){
 	for( var key in config ){
 		pageVars[key] = config[key];
 	}
+	pageVars.menu = menu.menu;
+	pageVars.menuItem = function(){
+		return this.title;
+	};
 	
 
 	// mustache parse one (insert custom includes)
@@ -93,7 +109,8 @@ for( var i = 0; i < pagemds.length; i++ ){
 
 
 
-// if the site has a blog
+// BLOG
+//////////////////////////////////////////////////////
 if ( config.blog ){
 
 
@@ -116,6 +133,7 @@ if ( config.blog ){
 		for( var key in config ){
 			pageVars[key] = config[key];
 		}
+		pageVars.menu = menu;
 	
 		// post date
 		var dateString = path.basename( blogmds[i], '.md' ).split('-');
@@ -155,18 +173,17 @@ if ( config.blog ){
 		})
 	}
 	
-	// sort the blog posts by date (last one should be the first in the array)
+	// sort the blog posts by date
 	var dateSorter = function dateSorter( a, b){
 		return b.date - a.date;
 	}	
 	posts.sort( dateSorter );	
 	
 		
-	// create blog index
-	// how many pages are needed?
+	// Index pages
 	var allIndexes = Math.ceil( posts.length / config.postsPerPage );
 	
-	// create index function
+	// Index creating function
 	var createIndex = function createIndex( index, posts ){
 				
 		// index data (page number and posts to display)
@@ -188,13 +205,22 @@ if ( config.blog ){
 			indexData.nextPage = 'index-' + (index+1) + '.html';
 		}
 		
-	
+		
+		// populate indexData with defaults, menu and config
+		for( var key in config ){
+			indexData[key] = config[key];
+		}
+		indexData.menu = menu;
+		
+
 		// read the template
 		var template = fs.readFileSync( 'templates/' + defaultBlogIndexTemplate, {encoding: 'utf8'} ).toString();
+		
 		
 		// mustache parse the template
 		var parse = mup( template, indexData, includes );
 		
+		// save it
 		var outFile = 'site/' + blogFolder + '/' + 'index-' + index + '.html';
 		if ( index === 1 ) outFile = 'site/' + blogFolder + '/' + 'index.html';
 		
@@ -202,6 +228,8 @@ if ( config.blog ){
 		
 	};
 		
+	// go through the posts and create
+	// an index page for every 'postsPerPage' posts
 	var pageNumber = 1;
 	var pagePosts = [];
 	for( var i = 1; i < posts.length+1; i ++ ){
@@ -222,19 +250,6 @@ if ( config.blog ){
 
 
 
-// Qick tests
-
-//console.log( frd.readFile( 'pages/about.md' ) );
-//console.log( frd.listFiles( 'pages' ) );
 
 
-//frd.createStructure();
-
-//console.log( frd.listFiles( 'site' ) );
-
-/*
-frd.copy( 'assets', 'site/assets', function(err){
-	if ( err ) throw err;
-} );
-*/
-
+// Have fun
