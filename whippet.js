@@ -27,15 +27,21 @@ var defaultBlogIndexTemplate = 'default-blog-index.html';
 var pagesFolder = 'pages';
 var blogFolder = 'blog';
 var includesFolder = 'includes';
+var usedFilesFile = 'site/.usedfiles.json';
 
 
 
 // Read configuration
-var config = JSON.parse( fs.readFileSync( 'config.json', {encoding: 'utf8'} ).toString() );
+var config = JSON.parse( frd.readFile( 'config.json' ) );
 
 // Read menu
-var menu = JSON.parse( fs.readFileSync( 'menu.json', {encoding: 'utf8'} ).toString() );
+var menu = JSON.parse( frd.readFile( 'menu.json' ) );
 
+// Used files
+var usedFiles = {};
+if ( fs.existsSync( usedFilesFile ) ){
+	usedFiles = JSON.parse( frd.readFile( usedFilesFile ) );
+}
 
 // CORE STRUCTURE
 //////////////////////////////////////////////////////
@@ -107,50 +113,67 @@ pagemds.push( 'index.md' );
 
 for( var i = 0; i < pagemds.length; i++ ){
 	
-	// Raw text string
-	var raw = frd.readFile( pagemds[i] );
+	var shouldParse = false;
+	
+	// check if the file changed
+	if ( usedFiles[ pagemds[i] ] ){
+		// parse if it changed
+		if ( usedFiles[ pagemds[i] ] !== fs.statSync( pagemds[i] ).size ){
+			shouldParse = true;
+		}
+	} else {
+		// add it to the list
+		usedFiles[ pagemds[i] ] = fs.statSync( pagemds[i] ).size;
+		shouldParse = true;
+	}
 	
 	
-	// Page variables (as defined in the md document)
-	var pageVars = fmp( raw );
-
-
-	// populate pageVariables with defaults, menu and cofig	
-	if ( !pageVars.template || pageVars.template.length === 0 )	{
-		pageVars.template = defaultPageTemplage;
+	if ( shouldParse ){
+		// Raw text string
+		var raw = frd.readFile( pagemds[i] );
 		
-		if ( i === pagemds.length-1 ) pageVars.template = defaultIndexTemplate;
-	}
+		
+		// Page variables (as defined in the md document)
+		var pageVars = fmp( raw );
 	
-	for( var key in config ){
-		pageVars[key] = config[key];
-	}
-	pageVars.menu = returnMenu( pagemds[i] );
+	
+		// populate pageVariables with defaults, menu and cofig	
+		if ( !pageVars.template || pageVars.template.length === 0 )	{
+			pageVars.template = defaultPageTemplage;
 			
-	// add page to search index
-	searcher.addToIndex( {
-		title: pageVars.title,
-		keywords: pageVars.keywords,
-		content: pageVars.content,
-		url: pagemds[i]
-	} );
-
-	// mustache parse one (insert custom includes)
-	pageVars.content = mup( pageVars.content, includes );
+			if ( i === pagemds.length-1 ) pageVars.template = defaultIndexTemplate;
+		}
 		
-	// markdown parse
-	pageVars.content = mdp( pageVars.content );
+		for( var key in config ){
+			pageVars[key] = config[key];
+		}
+		pageVars.menu = returnMenu( pagemds[i] );
+				
+		// add page to search index
+		searcher.addToIndex( {
+			title: pageVars.title,
+			keywords: pageVars.keywords,
+			content: pageVars.content,
+			url: pagemds[i]
+		} );
 	
-	
-	// mustache parse two (template)
-	var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
-	var parse = mup( template, pageVars, includes );
-	
-	
-	// write to a file	
-	var outFile = 'site/'+pagesFolder+'/' + path.basename( pagemds[i], '.md' ) + '.html';	
-	if ( i === pagemds.length-1 ) outFile = 'site/index.html'; // index.html
-	frd.saveFile( outFile, parse );
+		// mustache parse one (insert custom includes)
+		pageVars.content = mup( pageVars.content, includes );
+			
+		// markdown parse
+		pageVars.content = mdp( pageVars.content );
+		
+		
+		// mustache parse two (template)
+		var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
+		var parse = mup( template, pageVars, includes );
+		
+		
+		// write to a file	
+		var outFile = 'site/'+pagesFolder+'/' + path.basename( pagemds[i], '.md' ) + '.html';	
+		if ( i === pagemds.length-1 ) outFile = 'site/index.html'; // index.html
+		frd.saveFile( outFile, parse );	
+		}
 }
 
 
@@ -165,71 +188,93 @@ if ( config.blog ){
 	
 	var posts = [];
 	
+	var postsChanged = false;
+	
 	for( var i = 0; i < blogmds.length; i++ ){
-				
-		// Raw text string
-		var raw = frd.readFile( blogmds[i] );
-		
-		
-		// Page variables (as defined in the md document)
-		var pageVars = fmp( raw );
+
+		var shouldParse = false;
 	
-		// populate pageVariables with defaults and cofig
-		if ( !pageVars.template || pageVars.template.length === 0 )	pageVars.template = defaultPageTemplage;
-		for( var key in config ){
-			pageVars[key] = config[key];
+		// check if the file changed
+		if ( usedFiles[ blogmds[i] ] ){
+			// parse if it changed
+			if ( usedFiles[ blogmds[i] ] !== fs.statSync( blogmds[i] ).size ){
+				shouldParse = true;
+			}
+		} else {
+			// add it to the list
+			usedFiles[ blogmds[i] ] = fs.statSync( blogmds[i] ).size;
+			shouldParse = true;
 		}
 		
-		// add menu
-		pageVars.menu = returnMenu( blogmds[i] );
 		
-	
-		// post date
-		var dateString = path.basename( blogmds[i], '.md' ).split('-');
-		for ( var j = 0; j < dateString.length; j++ ){
-			dateString[j] = parseInt( dateString[j] );
-		}
-		//var postDate = new Date( dateString );
-		//var postDate = Date.apply( this, dateString );
-		var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
-		pageVars.postDate = postDate;
-		
-		
-		// add to search index
-		searcher.addToIndex( {
-			title: pageVars.title,
-			keywords: pageVars.keywords,
-			content: pageVars.content,
-			url: blogmds[i],
-			date: pageVars.postDate
-		} );
-		
-	
-		// mustache parse one (insert custom includes)
-		pageVars.content = mup( pageVars.content, includes );
-		
+		if ( shouldParse ){
+
+			postChanged = true;
 			
-		// markdown parse	
-		pageVars.content = mdp( pageVars.content );
+			// Raw text string
+			var raw = frd.readFile( blogmds[i] );
+			
+			
+			// Page variables (as defined in the md document)
+			var pageVars = fmp( raw );
 		
+			// populate pageVariables with defaults and cofig
+			if ( !pageVars.template || pageVars.template.length === 0 )	pageVars.template = defaultPageTemplage;
+			for( var key in config ){
+				pageVars[key] = config[key];
+			}
+			
+			// add menu
+			pageVars.menu = returnMenu( blogmds[i] );
+			
 		
-		// mustache parse two (template)
-		var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
-		var parse = mup( template, pageVars, includes );
+			// post date
+			var dateString = path.basename( blogmds[i], '.md' ).split('-');
+			for ( var j = 0; j < dateString.length; j++ ){
+				dateString[j] = parseInt( dateString[j] );
+			}
+			//var postDate = new Date( dateString );
+			//var postDate = Date.apply( this, dateString );
+			var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
+			pageVars.postDate = postDate;
+			
+			
+			// add to search index
+			searcher.addToIndex( {
+				title: pageVars.title,
+				keywords: pageVars.keywords,
+				content: pageVars.content,
+				url: blogmds[i],
+				date: pageVars.postDate
+			} );
+			
 		
-		
-		// write to a file
-		var outFile = 'site/'+blogFolder+'/' + path.basename( blogmds[i], '.md' ) + '.html';	
-		frd.saveFile( outFile, parse );
-		
-		// add it to the posts list
-		posts.push({
-			url: path.basename( blogmds[i], '.md' ) + '.html',
-			title: pageVars.title,
-			intro: pageVars.intro,
-			date: pageVars.postDate,
-			id: i
-		})
+			// mustache parse one (insert custom includes)
+			pageVars.content = mup( pageVars.content, includes );
+			
+				
+			// markdown parse	
+			pageVars.content = mdp( pageVars.content );
+			
+			
+			// mustache parse two (template)
+			var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
+			var parse = mup( template, pageVars, includes );
+			
+			
+			// write to a file
+			var outFile = 'site/'+blogFolder+'/' + path.basename( blogmds[i], '.md' ) + '.html';	
+			frd.saveFile( outFile, parse );
+			
+			// add it to the posts list
+			posts.push({
+				url: path.basename( blogmds[i], '.md' ) + '.html',
+				title: pageVars.title,
+				intro: pageVars.intro,
+				date: pageVars.postDate,
+				id: i
+			});
+		}
 	}
 	
 	// sort the blog posts by date
@@ -294,26 +339,30 @@ if ( config.blog ){
 		frd.saveFile( outFile, parse );
 		
 	};
-		
-	// go through the posts and create
-	// an index page for every 'postsPerPage' posts
-	var pageNumber = 1;
-	var pagePosts = [];
-	for( var i = 1; i < posts.length+1; i ++ ){
-		
-		pagePosts.push( posts[i-1] );
-		
-		if ( i % config.postsPerPage === 0 ){
-			createIndex( pageNumber, pagePosts );
-			pageNumber++;
-			pagePosts = [];			
+	
+	if ( postsChanged ){
+		// go through the posts and create
+		// an index page for every 'postsPerPage' posts
+		var pageNumber = 1;
+		var pagePosts = [];
+		for( var i = 1; i < posts.length+1; i ++ ){
+			
+			pagePosts.push( posts[i-1] );
+			
+			if ( i % config.postsPerPage === 0 ){
+				createIndex( pageNumber, pagePosts );
+				pageNumber++;
+				pagePosts = [];			
+			}
 		}
+		createIndex( pageNumber, pagePosts );	
 	}
-	createIndex( pageNumber, pagePosts );
 	
 }
 
 
+// update usedFiles file
+frd.saveFile( usedFilesFile, JSON.stringify( usedFiles ) );
 
 
 // SEARCH INDEX
