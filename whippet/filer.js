@@ -84,7 +84,7 @@ exports.copy = function copyFiles( from, to, done ){
 			
 			if ( rewrite ){
 				
-				console.log('Copying', toFile );
+				//console.log('Copying', toFile );
 				
 				var rd = fs.createReadStream( fromFile );
 				rd.on('error', function(err){
@@ -136,7 +136,7 @@ exports.readFile = function readFile( filename ){
 
 // Save a file
 exports.saveFile = function saveFile( path, contents ){
-	console.log('Saving:', path);
+	//console.log('Saving:', path);
 	
 	fs.writeFileSync( path, contents, {encoding: 'utf8'} );
 };
@@ -159,4 +159,10 @@ var createFolder = function createFolder( folder ){
 };
 
 
-// List files recursively
+
+
+
+
+
+
+

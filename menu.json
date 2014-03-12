@@ -6,24 +6,15 @@
 		},
 		{ 
 			"title": "About",
-			"url": "index.html"			
+			"url": "pages/about.html"			
 		},
 		{ 
 			"title": "Blog",
 			"url": "blog/index.html"			
 		},
-		{ 
-			"title": "Nested one",
-			"subpages": [
-				{
-					"title": "Nested One",
-					"url": "somewhere.html"
-				},
-				{
-					"title": "Nested Two",
-					"url": "somewhereElse.html"
-				}
-			]		
+		{
+			"title": "Random post",
+			"url": "blog/2014-03-01.html"
 		}
 	]
 }

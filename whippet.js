@@ -11,6 +11,7 @@ var frd = require('./whippet/filer.js'),
 	mdp = require('./whippet/mdparser.js'),
 	mup = require('./whippet/mustacheparser.js'),
 	fmp = require('./whippet/fmparser.js'),
+	searcher = require('./whippet/searchIndexer.js'),
 	util = require('util'),
 	path = require('path'),
 	fs = require('fs');
@@ -59,6 +60,45 @@ for ( var i = 0; i < includesList.length; i++ ){
 }
 
 
+
+
+
+//////////////////////////////////////////////////////
+// RETURN MENU HELPER FUNCTION
+var returnMenu = function returnMenu( pageURL ){
+	
+	pageURL = pageURL.substring( 0, pageURL.lastIndexOf('.') ) + '.html';
+	var theMenu = [];
+	var inFolder = false;
+	
+	// check if the path needs the '../' in front
+	if ( pageURL.indexOf( pagesFolder ) !== -1 || pageURL.indexOf( blogFolder ) !== -1 ){
+		inFolder = true;
+	}
+
+		
+	// check if this page is in the menu and should be marked 'active'
+	for( var i = 0; i < menu.menu.length; i++ ){
+
+		// re-create the menu obj
+		theMenu[i] = {
+			title: menu.menu[i].title,
+			url: menu.menu[i].url
+		};
+		
+		// mark it as active
+		if( theMenu[i].url === pageURL ) theMenu[i].active = true;
+		if( pageURL.indexOf( blogFolder ) !== -1 && theMenu[i].url.indexOf( blogFolder ) !== -1 ) theMenu[i].active = true;
+		
+		// change the path
+		if ( inFolder ) theMenu[i].url = '../' + theMenu[i].url;
+	}	
+	
+	return theMenu;
+}
+
+
+
 // PAGES
 //////////////////////////////////////////////////////
 var pagemds = frd.listFiles( pagesFolder );
@@ -73,6 +113,7 @@ for( var i = 0; i < pagemds.length; i++ ){
 	// Page variables (as defined in the md document)
 	var pageVars = fmp( raw );
 
+
 	// populate pageVariables with defaults, menu and cofig	
 	if ( !pageVars.template || pageVars.template.length === 0 )	{
 		pageVars.template = defaultPageTemplage;
@@ -83,11 +124,15 @@ for( var i = 0; i < pagemds.length; i++ ){
 	for( var key in config ){
 		pageVars[key] = config[key];
 	}
-	pageVars.menu = menu.menu;
-	pageVars.menuItem = function(){
-		return this.title;
-	};
-	
+	pageVars.menu = returnMenu( pagemds[i] );
+			
+	// add page to search index
+	searcher.addToIndex( {
+		title: pageVars.title,
+		keywords: pageVars.keywords,
+		content: pageVars.content,
+		url: pagemds[i]
+	} );
 
 	// mustache parse one (insert custom includes)
 	pageVars.content = mup( pageVars.content, includes );
@@ -133,7 +178,10 @@ if ( config.blog ){
 		for( var key in config ){
 			pageVars[key] = config[key];
 		}
-		pageVars.menu = menu;
+		
+		// add menu
+		pageVars.menu = returnMenu( blogmds[i] );
+		
 	
 		// post date
 		var dateString = path.basename( blogmds[i], '.md' ).split('-');
@@ -144,6 +192,16 @@ if ( config.blog ){
 		//var postDate = Date.apply( this, dateString );
 		var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
 		pageVars.postDate = postDate;
+		
+		
+		// add to search index
+		searcher.addToIndex( {
+			title: pageVars.title,
+			keywords: pageVars.keywords,
+			content: pageVars.content,
+			url: blogmds[i],
+			date: pageVars.postDate
+		} );
 		
 	
 		// mustache parse one (insert custom includes)
@@ -210,7 +268,15 @@ if ( config.blog ){
 		for( var key in config ){
 			indexData[key] = config[key];
 		}
-		indexData.menu = menu;
+
+
+		// add the menu
+		if ( index === 1 ){
+			indexData.menu = returnMenu( blogFolder + '/index.html' );
+		} else {
+			indexData.menu = returnMenu( blogFolder + '/index-' + index + '.html' );
+		}
+		
 		
 
 		// read the template
@@ -245,6 +311,20 @@ if ( config.blog ){
 	createIndex( pageNumber, pagePosts );
 	
 }
+
+
+
+
+// SEARCH INDEX
+//////////////////////////////////////////////////////
+frd.saveFile( 'searchIndex.js', JSON.stringify( searcher.getSearchIndex() ) );
+
+
+
+
+
+
+// HELPER FUNCTIONS
 
 
 
