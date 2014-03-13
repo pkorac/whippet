@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+var path = require('path'),
+	fs = require('fs');
+
+// path to the js file
+var lib = fs.realpathSync(__filename);
+lib = path.dirname( lib );
+lib = path.join( lib, '../lib' );
+
+require( lib + '/whippet.js').whip();
