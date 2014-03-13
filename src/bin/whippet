@@ -8,4 +8,39 @@ var lib = fs.realpathSync(__filename);
 lib = path.dirname( lib );
 lib = path.join( lib, '../lib' );
 
-require( lib + '/whippet.js').whip();
+
+var frd = require( lib + '/whippet/filer.js' );
+
+
+// NEW
+if ( process.argv.length > 3 && process.argv[2] === 'new' ){
+
+	var newsitedir = process.argv[3];	
+	
+	var cwd = process.cwd();
+	cwd += '/' + newsitedir;		
+	
+	frd.copy( lib + '/structure-template', cwd, function(err){
+		console.log( 'New site created' );
+	} );	
+}
+
+
+// BUILD
+if ( process.argv.length > 2 && process.argv[2] === 'build' ){
+	require( lib + '/whippet.js').whip();
+	console.log( 'Site re-built' );
+}
+
+
+// WATCH
+if ( process.argv.length > 2 && process.argv[2] === 'watch' ){
+	console.log( 'watching over your site' );
+	
+	var cwd = process.cwd();
+//	cwd += '/pages';
+	console.log( cwd );
+	
+	frd.watch( '.' );
+	
+}

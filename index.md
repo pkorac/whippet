@@ -1,6 +1,7 @@
 ---
-title: Whippet.JS
+title: Whippet
 ---
 
 Welcome to my page
-Changed for sure
+
+This is a simple static site generator.

@@ -1,7 +1,7 @@
 var fs = require('fs'),
 	path = require('path'),
-	util = require('util');
-
+	util = require('util'),
+	chokidar = require('chokidar');
 
 
 // List files
@@ -66,7 +66,7 @@ exports.copy = function copyFiles( from, to, done ){
 		var copymachine = function copymachine(){
 
 			var fromFile = files[counter];
-			var toFile = to + files[counter].substring( fromLength );
+			var toFile = to + files[counter].substring( fromLength );			
 			
 			var rewrite = false;
 			
@@ -84,7 +84,22 @@ exports.copy = function copyFiles( from, to, done ){
 			
 			if ( rewrite ){
 				
-				//console.log('Copying', toFile );
+				// create the folder if it doesn't exist
+				var toFolder = path.dirname( toFile );
+				
+				var createFolder = function( folder ){
+					if ( !fs.existsSync( folder ) ){
+					
+						var parent = folder.substring( 0, folder.lastIndexOf( path.sep ) );						
+						createFolder( parent );						
+						fs.mkdirSync( folder );						
+						
+					} else {
+						return;
+					}
+				}
+				createFolder( toFolder );
+				
 				
 				var rd = fs.createReadStream( fromFile );
 				rd.on('error', function(err){
@@ -144,6 +159,19 @@ exports.saveFile = function saveFile( path, contents ){
 
 
 
+exports.watch = function watch( file, cb ){
+	console.log( 'watching', file );
+	
+	var watcher = chokidar.watch( file, {ignored: /[\/\\]\./} );
+	
+	watcher.on('change', function (event, path){
+		console.log( 'changed' );
+	});
+};
+
+
+
+
 ////////////////////////////////////////////////////////////
 // Helper functions
 
@@ -155,7 +183,6 @@ var createFolder = function createFolder( folder ){
 		fs.mkdirSync( folder );
 	}
 };
-
 
 
 

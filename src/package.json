@@ -18,7 +18,8 @@
   "dependencies": {
     "front-matter": "*",
     "mustache": "*",
-    "marked": "*"
+    "marked": "*",
+    "chokidar": "*"
   },
   "repository": {
     "type": "git",
