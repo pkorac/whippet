@@ -10,7 +10,7 @@ lib = path.join( lib, '../lib' );
 
 
 var frd = require( lib + '/whippet/filer.js' );
-
+var whippet = require( lib + '/whippet.js');
 
 // NEW
 if ( process.argv.length > 3 && process.argv[2] === 'new' ){
@@ -22,13 +22,14 @@ if ( process.argv.length > 3 && process.argv[2] === 'new' ){
 	
 	frd.copy( lib + '/structure-template', cwd, function(err){
 		console.log( 'New site created' );
-	} );	
+	} );
+
 }
 
 
 // BUILD
 if ( process.argv.length > 2 && process.argv[2] === 'build' ){
-	require( lib + '/whippet.js').whip();
+	whippet.whip();
 	console.log( 'Site re-built' );
 }
 
@@ -38,9 +39,21 @@ if ( process.argv.length > 2 && process.argv[2] === 'watch' ){
 	console.log( 'watching over your site' );
 	
 	var cwd = process.cwd();
-//	cwd += '/pages';
-	console.log( cwd );
+
+	var fileList = fs.readdirSync( '.' );
+	var filesToWatch = [];
+		
+	for( var i = 0; i < fileList.length; i++ ){		
+		
+		if ( fileList[i].search('site') === -1 && fileList[i][0] !== '.' ){
+		
+			if ( fs.statSync( fileList[i] ).isDirectory() ) filesToWatch.push( cwd + '/' + fileList[i] );
+		}
+	}
 	
-	frd.watch( '.' );
+	frd.watch( cwd, cwd + '/site', function(){
+		console.log( 'Updating site' );
+		whippet.whip();
+	} );
 	
 }

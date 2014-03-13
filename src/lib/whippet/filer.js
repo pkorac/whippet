@@ -1,7 +1,7 @@
 var fs = require('fs'),
 	path = require('path'),
 	util = require('util'),
-	chokidar = require('chokidar');
+	watcher = require('watch');
 
 
 // List files
@@ -157,18 +157,23 @@ exports.saveFile = function saveFile( path, contents ){
 };
 
 
-
-
-exports.watch = function watch( file, cb ){
-	console.log( 'watching', file );
+// Watch a directory
+exports.watch = function( dir, sitedir, cb ){
 	
-	var watcher = chokidar.watch( file, {ignored: /[\/\\]\./} );
-	
-	watcher.on('change', function (event, path){
-		console.log( 'changed' );
-	});
-};
-
+	watcher.watchTree( dir, {
+		ignoreDotfiles: true,
+		filter: function(file){
+			//console.log( file );
+			if ( file.search( sitedir ) === -1 ) {
+				return true;				
+			}
+			return false;
+		}
+		
+	}, function(){
+		cb();
+	} );
+}
 
 
 
