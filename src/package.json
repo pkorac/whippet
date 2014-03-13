@@ -1,8 +1,11 @@
 {
-  "name": "whippet-js",
+  "name": "whippet",
   "version": "0.0.0",
   "description": "Static website generator",
-  "main": "whippet.js",
+  "main": "./lib/whippet",
+  "bin": {
+	"whippet": "./bin/whippet"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +15,16 @@
   ],
   "author": "Peter Koraca",
   "license": "MIT",
-  "dependencies":{
-	  "front-matter": "*",
-	  "mustache": "*",
-	  "marked": "*"
+  "dependencies": {
+    "front-matter": "*",
+    "mustache": "*",
+    "marked": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:pkorac/whippet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pkorac/whippet/issues"
   }
 }
