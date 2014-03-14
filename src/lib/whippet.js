@@ -127,6 +127,7 @@ function whip(){
 		}
 		
 		
+		shouldParse = true; // temp fix
 		if ( shouldParse ){
 			// Raw text string
 			var raw = frd.readFile( pagemds[i] );
@@ -161,12 +162,11 @@ function whip(){
 				
 			// markdown parse
 			pageVars.content = mdp( pageVars.content );
-			
+					
 			
 			// mustache parse two (template)
 			var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
-			var parse = mup( template, pageVars, includes );
-			
+			var parse = mup( template, pageVars, includes );			
 			
 			// write to a file	
 			var outFile = 'site/'+pagesFolder+'/' + path.basename( pagemds[i], '.md' ) + '.html';	
@@ -205,6 +205,7 @@ function whip(){
 				shouldParse = true;
 			}
 			
+			shouldParse = true; // temp fix
 			
 			if ( shouldParse ){
 	
@@ -294,7 +295,8 @@ function whip(){
 			var indexData = {		
 				allPages: allIndexes,
 				thisPageNumber: index,
-				posts: posts
+				posts: posts,
+				title: 'Blog'
 			};
 			
 	

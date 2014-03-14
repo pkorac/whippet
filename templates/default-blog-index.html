@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>{{site.title}}: Blog</title>
+	<link rel="stylesheet" href="../lib/style.css" type="text/css" media="screen" charset="utf-8">
+	
+</head>
+<body>
+	
+	
+	{{>header}}
+	
+	<h2>Posts</h2>
+	
+	{{#posts}}
+	<ul>
+		<li>
+			<a href="{{url}}">{{title}}</a><br />
+			{{date}}<br />
+			{{intro}}<br />
+			<small>ID: {{id}}</small>
+		</li>
+	</ul>
+	{{/posts}}	
+	
+	<h5>Page {{thisPageNumber}} of {{allPages}}</h5>
+
+	{{#prevPage}}
+		<a href="{{prevPage}}">Previous page: {{prevPageNumber}}</a> | 
+	{{/prevPage}}
+	{{#nextPage}}
+		<a href="{{nextPage}}">Next page: {{nextPageNumber}}</a>
+	{{/nextPage}}
+	
+</body>
+</html>
