@@ -36,24 +36,31 @@ if ( process.argv.length > 2 && process.argv[2] === 'build' ){
 
 // WATCH
 if ( process.argv.length > 2 && process.argv[2] === 'watch' ){
+	whippet.whip();
 	console.log( 'watching over your site' );
 	
-	var cwd = process.cwd();
-
-	var fileList = fs.readdirSync( '.' );
-	var filesToWatch = [];
-		
-	for( var i = 0; i < fileList.length; i++ ){		
-		
-		if ( fileList[i].search('site') === -1 && fileList[i][0] !== '.' ){
-		
-			if ( fs.statSync( fileList[i] ).isDirectory() ) filesToWatch.push( cwd + '/' + fileList[i] );
-		}
-	}
+	var foldersToWatch = [ 'assets', 'blog', 'includes', 'lib', 'pages', 'templates', 'index.md'];
 	
-	frd.watch( cwd, cwd + '/site', function(){
-		console.log( 'Updating site' );
+	var changed = function changed(){
 		whippet.whip();
-	} );
+		console.log( 'Site updated' );
+	};
+		
+	
+	var counter = 0;
+	var watchIt = function watchIt(){
+		
+		var pathToFolder = process.cwd();
+		pathToFolder += '/' + foldersToWatch[counter] + '/';
+		if ( foldersToWatch[counter] === 'index.md' ) pathToFolder = pathToFolder.substring(0, pathToFolder.length-1);
+		
+		fs.watch( pathToFolder, changed );
+
+		
+		if ( counter < foldersToWatch.length-1 ){
+			counter++;
+			watchIt();
+		}		
+	}();
 	
 }

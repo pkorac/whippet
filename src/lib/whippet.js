@@ -150,9 +150,7 @@ function whip(){
 		}
 		
 		if ( templatesChanged ) shouldParse = true;		
-		
-		console.log( pagemds[i], shouldParse );
-		
+				
 		if ( shouldParse ){
 			// Raw text string
 			var raw = frd.readFile( pagemds[i] );
@@ -216,10 +214,7 @@ function whip(){
 		}
 	}
 	
-	
-	console.log( 'rebuild index', rebuildBlogIndexes );
-	
-	
+		
 	// BLOG INDEX
 	//////////////////////////////////////////////////////
 	if ( rebuildBlogIndexes ){

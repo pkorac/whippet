@@ -2,6 +2,7 @@
 title: About
 ---
 
+
 Created by [Peter Koraca](https://github.com/pkorac), Whippet.js is an open source tool that generates static websites.
 
 The idea behind Whippet.js is quite similar to [Jeklyll’s](http://jekyllrb.com/) – it compiles a static website from a folder of **markdown** files, using **templates** you design and create. However that’s where the similarities end.
