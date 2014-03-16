@@ -18,8 +18,7 @@
   "dependencies": {
     "front-matter": "*",
     "mustache": "*",
-    "marked": "*",
-    "watch": "*"
+    "marked": "*"
   },
   "repository": {
     "type": "git",

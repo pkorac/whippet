@@ -1,7 +1,6 @@
 var fs = require('fs'),
 	path = require('path'),
-	util = require('util'),
-	watcher = require('watch');
+	util = require('util');
 
 
 // List files
@@ -155,26 +154,6 @@ exports.saveFile = function saveFile( path, contents ){
 	
 	fs.writeFileSync( path, contents, {encoding: 'utf8'} );
 };
-
-
-// Watch a directory
-exports.watch = function( dir, sitedir, cb ){
-	
-	watcher.watchTree( dir, {
-		ignoreDotfiles: true,
-		filter: function(file){
-			//console.log( file );
-			if ( file.search( sitedir ) === -1 ) {
-				return true;				
-			}
-			return false;
-		}
-		
-	}, function(){
-		cb();
-	} );
-}
-
 
 
 ////////////////////////////////////////////////////////////
