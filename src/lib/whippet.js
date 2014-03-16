@@ -26,6 +26,7 @@ function whip(){
 	var pagesFolder = 'pages';
 	var blogFolder = 'blog';
 	var includesFolder = 'includes';
+	var templatesFolder = 'templates';
 	var usedFilesFile = 'site/.usedfiles.json';
 	
 	
@@ -102,40 +103,62 @@ function whip(){
 		return theMenu;
 	}
 	
+
+
+	// rebuild blog index pages on either template change or blog post changes
+	var rebuildBlogIndexes = false;
+		
+		
+	//////////////////////////////////////////////////////	
+	// TEMPLATE CHANGE CHECK
+	var templatesChanged = false;
+	var templates = frd.listFiles( templatesFolder );
+	templates = templates.concat( frd.listFiles( includesFolder ) );
+	for ( var i = 0; i < templates.length; i++ ){
+		if ( usedFiles[ templates[i] ] ){
+			if ( usedFiles[ templates[i] ] !== fs.statSync( templates[i] ).size ){
+				templatesChanged = true;
+				rebuildBlogIndexes = true;
+				usedFiles[ templates[i] ] = fs.statSync( templates[i] ).size;
+			}
+		} else {
+			templatesChanged = true;
+			rebuildBlogIndexes = true;
+			usedFiles[ templates[i] ] = fs.statSync( templates[i] ).size;
+		}
+	}
 	
-	
+	//////////////////////////////////////////////////////	
 	// PAGES
-	//////////////////////////////////////////////////////
 	var pagemds = frd.listFiles( pagesFolder );
-	pagemds.push( 'index.md' );
+	pagemds.push( 'index.md' );	
+	pagemds = pagemds.concat( frd.listFiles( blogFolder ) );
 	
-	
+	var blogPosts = [];
+		
 	for( var i = 0; i < pagemds.length; i++ ){
 		
 		var shouldParse = false;
-		
-		// check if the file changed
 		if ( usedFiles[ pagemds[i] ] ){
-			// parse if it changed
 			if ( usedFiles[ pagemds[i] ] !== fs.statSync( pagemds[i] ).size ){
 				shouldParse = true;
+				usedFiles[ pagemds[i] ] = fs.statSync( pagemds[i] ).size;
 			}
 		} else {
-			// add it to the list
-			usedFiles[ pagemds[i] ] = fs.statSync( pagemds[i] ).size;
 			shouldParse = true;
+			usedFiles[ pagemds[i] ] = fs.statSync( pagemds[i] ).size;
 		}
 		
+		if ( templatesChanged ) shouldParse = true;		
 		
-		shouldParse = true; // temp fix
+		console.log( pagemds[i], shouldParse );
+		
 		if ( shouldParse ){
 			// Raw text string
 			var raw = frd.readFile( pagemds[i] );
-			
-			
+						
 			// Page variables (as defined in the md document)
-			var pageVars = fmp( raw );
-		
+			var pageVars = fmp( raw );		
 		
 			// populate pageVariables with defaults, menu and cofig	
 			if ( !pageVars.template || pageVars.template.length === 0 )	{
@@ -148,6 +171,22 @@ function whip(){
 				pageVars[key] = config[key];
 			}
 			pageVars.menu = returnMenu( pagemds[i] );
+			pageVars.url = path.basename( pagemds[i], '.md' ) + '.html';
+			
+			
+			// blog posts dates
+			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
+				var dateString = path.basename( pagemds[i], '.md' ).split('-');
+				for ( var j = 0; j < dateString.length; j++ ){
+					dateString[j] = parseInt( dateString[j] );
+				}
+				var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
+				pageVars.postDate = postDate;
+				
+				blogPosts.push( pageVars );
+				rebuildBlogIndexes = true;
+			}
+			
 					
 			// add page to search index
 			searcher.addToIndex( {
@@ -161,141 +200,48 @@ function whip(){
 			pageVars.content = mup( pageVars.content, includes );
 				
 			// markdown parse
-			pageVars.content = mdp( pageVars.content );
-					
+			pageVars.content = mdp( pageVars.content );					
 			
 			// mustache parse two (template)
-			var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
+			var template = fs.readFileSync( templatesFolder + '/'+ pageVars.template, {encoding: 'utf8'} ).toString();
 			var parse = mup( template, pageVars, includes );			
 			
-			// write to a file	
-			var outFile = 'site/'+pagesFolder+'/' + path.basename( pagemds[i], '.md' ) + '.html';	
-			if ( i === pagemds.length-1 ) outFile = 'site/index.html'; // index.html
+			// write to a file
+			var outFile = 'site/'+ pagemds[i].substring( 0, pagemds[i].lastIndexOf('.') ) + '.html';
+			
+			if ( pagemds[i] === 'index.md' ) outFile = 'site/index.html'; // index.html
+			
 			frd.saveFile( outFile, parse );	
-			}
+			
+		}
 	}
 	
 	
+	console.log( 'rebuild index', rebuildBlogIndexes );
 	
-	// BLOG
+	
+	// BLOG INDEX
 	//////////////////////////////////////////////////////
-	if ( config.blog ){
+	if ( rebuildBlogIndexes ){
 	
 	
-		// Create blog posts
-		var blogmds = frd.listFiles( blogFolder );	
-		
-		var posts = [];
-		
-		var postsChanged = false;
-		
-		for( var i = 0; i < blogmds.length; i++ ){
-	
-			var shouldParse = false;
-		
-			// check if the file changed
-			if ( usedFiles[ blogmds[i] ] ){
-				// parse if it changed
-				if ( usedFiles[ blogmds[i] ] !== fs.statSync( blogmds[i] ).size ){
-					shouldParse = true;
-				}
-			} else {
-				// add it to the list
-				usedFiles[ blogmds[i] ] = fs.statSync( blogmds[i] ).size;
-				shouldParse = true;
-			}
-			
-			shouldParse = true; // temp fix
-			
-			if ( shouldParse ){
-	
-				postsChanged = true;
-				
-				// Raw text string
-				var raw = frd.readFile( blogmds[i] );
-				
-				
-				// Page variables (as defined in the md document)
-				var pageVars = fmp( raw );
-			
-				// populate pageVariables with defaults and cofig
-				if ( !pageVars.template || pageVars.template.length === 0 )	pageVars.template = defaultPageTemplage;
-				for( var key in config ){
-					pageVars[key] = config[key];
-				}
-				
-				// add menu
-				pageVars.menu = returnMenu( blogmds[i] );
-				
-			
-				// post date
-				var dateString = path.basename( blogmds[i], '.md' ).split('-');
-				for ( var j = 0; j < dateString.length; j++ ){
-					dateString[j] = parseInt( dateString[j] );
-				}
-				//var postDate = new Date( dateString );
-				//var postDate = Date.apply( this, dateString );
-				var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
-				pageVars.postDate = postDate;
-				
-				
-				// add to search index
-				searcher.addToIndex( {
-					title: pageVars.title,
-					keywords: pageVars.keywords,
-					content: pageVars.content,
-					url: blogmds[i],
-					date: pageVars.postDate
-				} );
-				
-			
-				// mustache parse one (insert custom includes)
-				pageVars.content = mup( pageVars.content, includes );
-				
-					
-				// markdown parse	
-				pageVars.content = mdp( pageVars.content );
-				
-				
-				// mustache parse two (template)
-				var template = fs.readFileSync( 'templates/'+ pageVars.template, {encoding: 'utf8'} ).toString();
-				var parse = mup( template, pageVars, includes );
-				
-				
-				// write to a file
-				var outFile = 'site/'+blogFolder+'/' + path.basename( blogmds[i], '.md' ) + '.html';	
-				frd.saveFile( outFile, parse );
-				
-				// add it to the posts list
-				posts.push({
-					url: path.basename( blogmds[i], '.md' ) + '.html',
-					title: pageVars.title,
-					intro: pageVars.intro,
-					date: pageVars.postDate,
-					id: i
-				});
-			}
-		}
-		
-		
-		// sort the blog posts by date
 		var dateSorter = function dateSorter( a, b){
 			return b.date - a.date;
 		}	
-		posts.sort( dateSorter );	
-		
+		blogPosts.sort( dateSorter );
+	
 			
 		// Index pages
-		var allIndexes = Math.ceil( posts.length / config.postsPerPage );
+		var allIndexes = Math.ceil( blogPosts.length / config.postsPerPage );
 		
 		// Index creating function
-		var createIndex = function createIndex( index, posts ){
+		var createIndex = function createIndex( index, blogPosts ){
 					
 			// index data (page number and posts to display)
 			var indexData = {		
 				allPages: allIndexes,
 				thisPageNumber: index,
-				posts: posts,
+				posts: blogPosts,
 				title: 'Blog'
 			};
 			
@@ -328,7 +274,7 @@ function whip(){
 			
 	
 			// read the template
-			var template = fs.readFileSync( 'templates/' + defaultBlogIndexTemplate, {encoding: 'utf8'} ).toString();
+			var template = fs.readFileSync( templatesFolder + '/' + defaultBlogIndexTemplate, {encoding: 'utf8'} ).toString();
 			
 			
 			// mustache parse the template
@@ -342,23 +288,22 @@ function whip(){
 			
 		};
 		
-		if ( postsChanged ){
-			// go through the posts and create
-			// an index page for every 'postsPerPage' posts
-			var pageNumber = 1;
-			var pagePosts = [];
-			for( var i = 1; i < posts.length+1; i ++ ){
-				
-				pagePosts.push( posts[i-1] );
-				
-				if ( i % config.postsPerPage === 0 ){
-					createIndex( pageNumber, pagePosts );
-					pageNumber++;
-					pagePosts = [];			
-				}
+		
+		// go through the posts and create
+		// an index page for every 'postsPerPage' posts
+		var pageNumber = 1;
+		var pagePosts = [];
+		for( var i = 1; i < blogPosts.length+1; i ++ ){
+			
+			pagePosts.push( blogPosts[i-1] );
+			
+			if ( i % config.postsPerPage === 0 ){
+				createIndex( pageNumber, pagePosts );
+				pageNumber++;
+				pagePosts = [];			
 			}
-			createIndex( pageNumber, pagePosts );	
 		}
+		createIndex( pageNumber, pagePosts );
 		
 	}
 	

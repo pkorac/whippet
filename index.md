@@ -4,8 +4,6 @@ tagline: A simple static website generator.
 hero-image: ../assets/image1.jpg
 ---
 
-
-
 # Usage
 
 Install
