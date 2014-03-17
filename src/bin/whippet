@@ -39,7 +39,7 @@ if ( process.argv.length > 2 && process.argv[2] === 'watch' ){
 	whippet.whip();
 	console.log( 'watching over your site' );
 	
-	var foldersToWatch = [ 'assets', 'blog', 'includes', 'lib', 'pages', 'templates', 'index.md'];
+	var foldersToWatch = [ 'assets', 'blog', 'includes', 'lib', 'pages', 'templates', 'index.md', 'config.json', 'menu.json'];
 	
 	var changed = function changed(){
 		whippet.whip();
@@ -52,7 +52,7 @@ if ( process.argv.length > 2 && process.argv[2] === 'watch' ){
 		
 		var pathToFolder = process.cwd();
 		pathToFolder += '/' + foldersToWatch[counter] + '/';
-		if ( foldersToWatch[counter] === 'index.md' ) pathToFolder = pathToFolder.substring(0, pathToFolder.length-1);
+		if ( foldersToWatch[counter] === 'index.md' || foldersToWatch[counter] === 'config.json' || foldersToWatch[counter] === 'menu.json') pathToFolder = pathToFolder.substring(0, pathToFolder.length-1);
 		
 		fs.watch( pathToFolder, changed );
 

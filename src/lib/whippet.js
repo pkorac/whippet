@@ -114,6 +114,8 @@ function whip(){
 	var templatesChanged = false;
 	var templates = frd.listFiles( templatesFolder );
 	templates = templates.concat( frd.listFiles( includesFolder ) );
+	templates.push( 'config.json' );
+	templates.push( 'menu.json' );
 	for ( var i = 0; i < templates.length; i++ ){
 		if ( usedFiles[ templates[i] ] ){
 			if ( usedFiles[ templates[i] ] !== fs.statSync( templates[i] ).size ){
