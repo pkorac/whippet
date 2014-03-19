@@ -4,8 +4,11 @@ var md = require('marked'),
 
 // set default options
 md.setOptions({
-	breaks: false, // gfm line breaks (dissable, it parses html fine)
-	smartypants: true // proper quotes
+	breaks: false, // gfm line breaks
+	smartypants: true, // proper quotes
+	highlight: function (code) {
+		return require('highlight.js').highlightAuto(code).value;
+	}
 });
 
 module.exports = function( content ){
