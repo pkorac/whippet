@@ -4,7 +4,7 @@ var md = require('marked'),
 
 // set default options
 md.setOptions({
-	breaks: true, // gfm line breaks
+	breaks: false, // gfm line breaks (dissable, it parses html fine)
 	smartypants: true // proper quotes
 });
 
