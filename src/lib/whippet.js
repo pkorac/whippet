@@ -152,7 +152,8 @@ function whip(){
 		}
 		
 		if ( templatesChanged ) shouldParse = true;		
-				
+		
+		shouldParse = true;	
 		if ( shouldParse ){
 			// Raw text string
 			var raw = frd.readFile( pagemds[i] );
@@ -182,7 +183,7 @@ function whip(){
 				}
 				var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
 				pageVars.postDate = postDate;
-				
+				pageVars.postDateFormatted = '' + postDate.getDate() + '. ' + ( postDate.getMonth() + 1 ) + '. ' + postDate.getFullYear();
 				blogPosts.push( pageVars );
 				rebuildBlogIndexes = true;
 			}
@@ -219,6 +220,7 @@ function whip(){
 		
 	// BLOG INDEX
 	//////////////////////////////////////////////////////
+	rebuildBlogIndexes = true;
 	if ( rebuildBlogIndexes ){
 	
 	
