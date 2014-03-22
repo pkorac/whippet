@@ -71,7 +71,7 @@ function whip(){
 	
 	//////////////////////////////////////////////////////
 	// RETURN MENU HELPER FUNCTION
-	var returnMenu = function returnMenu( pageURL ){
+	var returnMenu = function returnMenu( pageURL, parentPage ){
 		
 		pageURL = pageURL.substring( 0, pageURL.lastIndexOf('.') ) + '.html';
 		var theMenu = [];
@@ -93,7 +93,7 @@ function whip(){
 			};
 			
 			// mark it as active
-			if( theMenu[i].url === pageURL ) theMenu[i].active = true;
+			if( theMenu[i].url === pageURL || path.basename( theMenu[i].url ) === parentPage ) theMenu[i].active = true;
 			if( pageURL.indexOf( blogFolder ) !== -1 && theMenu[i].url.indexOf( blogFolder ) !== -1 ) theMenu[i].active = true;
 			
 			// change the path
@@ -152,7 +152,8 @@ function whip(){
 		}
 		
 		if ( templatesChanged ) shouldParse = true;		
-				
+		
+		shouldParse = true; // temp fix
 		if ( shouldParse ){
 			// Raw text string
 			var raw = frd.readFile( pagemds[i] );
@@ -170,11 +171,11 @@ function whip(){
 			for( var key in config ){
 				pageVars[key] = config[key];
 			}
-			pageVars.menu = returnMenu( pagemds[i] );
+			pageVars.menu = returnMenu( pagemds[i], pageVars.parentPage );
 			pageVars.url = path.basename( pagemds[i], '.md' ) + '.html';
 			
 			
-			// blog posts dates
+			// blog posts
 			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
 				var dateString = path.basename( pagemds[i], '.md' ).split('-');
 				for ( var j = 0; j < dateString.length; j++ ){
@@ -184,7 +185,7 @@ function whip(){
 				pageVars.postDate = postDate;
 				
 				blogPosts.push( pageVars );
-				rebuildBlogIndexes = true;
+				rebuildBlogIndexes = true;				
 			}
 			
 					
@@ -200,7 +201,13 @@ function whip(){
 			pageVars.content = mup( pageVars.content, includes );
 				
 			// markdown parse
-			pageVars.content = mdp( pageVars.content );					
+			pageVars.content = mdp( pageVars.content );
+			
+			
+			// blog posts intro text
+			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
+				if ( !pageVars.intro ) pageVars.intro = pageVars.content.substring( 0, config.introLength || 500 );
+			}
 			
 			// mustache parse two (template)
 			var template = fs.readFileSync( templatesFolder + '/'+ pageVars.template, {encoding: 'utf8'} ).toString();
@@ -263,9 +270,9 @@ function whip(){
 	
 			// add the menu
 			if ( index === 1 ){
-				indexData.menu = returnMenu( blogFolder + '/index.html' );
+				indexData.menu = returnMenu( blogFolder + '/index.html', 'blog' );
 			} else {
-				indexData.menu = returnMenu( blogFolder + '/index-' + index + '.html' );
+				indexData.menu = returnMenu( blogFolder + '/index-' + index + '.html', 'blog' );
 			}
 			
 			
