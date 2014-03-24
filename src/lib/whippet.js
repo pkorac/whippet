@@ -19,11 +19,11 @@ var frd = require('./whippet/filer.js'),
 function whip(){
 	// DEFAULTS
 	//////////////////////////////////////////////////////
-	var defaultPageTemplage = 'default-page.html';
-	var defaultIndexTemplate = 'default-index.html';
-	var defaultBlogIndexTemplate = 'default-blog-index.html';
-	var defaultBlogArchiveTemplate = 'default-blog-archive.html';
-	var defaultBlogCategoryTemplate = 'default-blog-category.html';
+	var defaultPageTemplage = 'page.html';
+	var defaultIndexTemplate = 'index.html';
+	var defaultBlogIndexTemplate = 'blog-index.html';
+	var defaultBlogArchiveTemplate = 'blog-archive.html';
+	var defaultBlogCategoryTemplate = 'blog-category.html';
 	var defaultOtherCategory = 'other';
 	
 	var pagesFolder = 'pages';
