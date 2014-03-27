@@ -4,5 +4,6 @@
 		"author": "Peter"
 	},
 	"blog": true,
-	"postsPerPage": 10
+	"postsPerPage": 10,
+	"introLength": 500
 }

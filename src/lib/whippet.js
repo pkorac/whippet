@@ -19,9 +19,12 @@ var frd = require('./whippet/filer.js'),
 function whip(){
 	// DEFAULTS
 	//////////////////////////////////////////////////////
-	var defaultPageTemplage = 'default-page.html';
-	var defaultIndexTemplate = 'default-index.html';
-	var defaultBlogIndexTemplate = 'default-blog-index.html';
+	var defaultPageTemplage = 'page.html';
+	var defaultIndexTemplate = 'index.html';
+	var defaultBlogIndexTemplate = 'blog-index.html';
+	var defaultBlogArchiveTemplate = 'blog-archive.html';
+	var defaultBlogCategoryTemplate = 'blog-category.html';
+	var defaultOtherCategory = 'other';
 	
 	var pagesFolder = 'pages';
 	var blogFolder = 'blog';
@@ -33,6 +36,7 @@ function whip(){
 	
 	// Read configuration
 	var config = JSON.parse( frd.readFile( 'config.json' ) );
+	if ( config.defaultOtherCategory ) defaultOtherCategory = config.defaultOtherCategory;
 	
 	// Read menu
 	var menu = JSON.parse( frd.readFile( 'menu.json' ) );
@@ -71,7 +75,7 @@ function whip(){
 	
 	//////////////////////////////////////////////////////
 	// RETURN MENU HELPER FUNCTION
-	var returnMenu = function returnMenu( pageURL ){
+	var returnMenu = function returnMenu( pageURL, parentPage ){
 		
 		pageURL = pageURL.substring( 0, pageURL.lastIndexOf('.') ) + '.html';
 		var theMenu = [];
@@ -93,7 +97,7 @@ function whip(){
 			};
 			
 			// mark it as active
-			if( theMenu[i].url === pageURL ) theMenu[i].active = true;
+			if( theMenu[i].url === pageURL || path.basename( theMenu[i].url ) === parentPage ) theMenu[i].active = true;
 			if( pageURL.indexOf( blogFolder ) !== -1 && theMenu[i].url.indexOf( blogFolder ) !== -1 ) theMenu[i].active = true;
 			
 			// change the path
@@ -171,11 +175,11 @@ function whip(){
 			for( var key in config ){
 				pageVars[key] = config[key];
 			}
-			pageVars.menu = returnMenu( pagemds[i] );
+			pageVars.menu = returnMenu( pagemds[i], pageVars.parentPage );
 			pageVars.url = path.basename( pagemds[i], '.md' ) + '.html';
 			
 			
-			// blog posts dates
+			// blog posts
 			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
 				var dateString = path.basename( pagemds[i], '.md' ).split('-');
 				for ( var j = 0; j < dateString.length; j++ ){
@@ -185,7 +189,7 @@ function whip(){
 				pageVars.postDate = postDate;
 				pageVars.postDateFormatted = '' + postDate.getDate() + '. ' + ( postDate.getMonth() + 1 ) + '. ' + postDate.getFullYear();
 				blogPosts.push( pageVars );
-				rebuildBlogIndexes = true;
+				rebuildBlogIndexes = true;				
 			}
 			
 					
@@ -201,7 +205,13 @@ function whip(){
 			pageVars.content = mup( pageVars.content, includes );
 				
 			// markdown parse
-			pageVars.content = mdp( pageVars.content );					
+			pageVars.content = mdp( pageVars.content );
+			
+			
+			// blog posts intro text
+			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
+				if ( !pageVars.intro ) pageVars.intro = pageVars.content.substring( 0, config.introLength || 500 );
+			}
 			
 			// mustache parse two (template)
 			var template = fs.readFileSync( templatesFolder + '/'+ pageVars.template, {encoding: 'utf8'} ).toString();
@@ -224,13 +234,191 @@ function whip(){
 	if ( rebuildBlogIndexes ){
 	
 	
+	
+		/////////////////////////
+		// POST SORTER
+		// sort posts by date
 		var dateSorter = function dateSorter( a, b){
 			return b.date - a.date;
 		}	
 		blogPosts.sort( dateSorter );
 	
+	
+	
+		/////////////////////////
+		// ARCHIVES
+		// archives obj
+		var archives = {};
+		var archivesArray = [];
+		
+		// Archive pages creation
+		var archiveMaker = function archiveMaker(){		
 			
-		// Index pages
+			var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+			
+			// fill archives
+			var fillArchives = function fillArchives( year, month ){
+
+				for ( var i = 0; i < blogPosts.length; i++ ){
+					if ( blogPosts[i].postDate.getFullYear() === year && blogPosts[i].postDate.getMonth() + 1 === month ){
+					
+						var indexName = 'archives-' + year + '-' + month;
+						if ( archives[ indexName ] ){
+							archives[ indexName ].posts.push( blogPosts[i] );
+						} else {
+							archives[ indexName ] = {
+								year: year,
+								month: month,
+								monthString: monthNames[ month-1 ],
+								posts: [ blogPosts[i] ],
+								url: indexName + '.html'
+							}
+						}
+
+					}
+				}
+			};
+		
+		
+			// calculate months
+			var min = blogPosts[0].postDate;
+			var max = blogPosts[ blogPosts.length-1 ].postDate;
+			
+			var diff = ( max.getFullYear() - min.getFullYear() ) *12;
+			diff -= min.getMonth() + 1;
+			diff += max.getMonth() + 1;
+			diff += 1; // to include the last month
+		
+			var archiveMonth = min.getMonth() + 1;
+			var archiveYear = min.getFullYear();
+			for( var i = 0; i < diff; i++ ){
+
+				fillArchives( archiveYear, archiveMonth )
+								
+				if ( archiveMonth === 12 ) {
+					archiveMonth = 0;
+					archiveYear++;
+				}
+				archiveMonth++;
+			}
+			
+			var counter = 0;
+			for ( var key in archives ){
+				archivesArray[counter] = archives[key];
+				counter++;
+			}
+				
+			
+			
+		}();
+		
+		
+		/////////////////////////
+		// CATEGORIES
+		var categories = {};
+		var categoriesArray = [];
+		var categoriser = function categoriser(){
+			
+			categories[defaultOtherCategory] = [];
+			
+			for( var i = 0; i < blogPosts.length; i++ ){
+				if ( blogPosts[i].category ) {
+					if ( categories[ blogPosts[i].category ] ){
+						categories[ blogPosts[i].category ].push( blogPosts[i] );
+					} else {
+						categories[ blogPosts[i].category ] = [ blogPosts[i] ];
+					}
+				} else {
+					categories[defaultOtherCategory].push( blogPosts[i] );
+				}
+			}
+			
+			for( var key in categories ) {
+				categoriesArray.push( { 
+					'category': key, 
+					'posts': categories[key], 
+					url: key + '.html' } );
+			}		
+			
+		}();
+			
+		
+		
+		// CREATE THE ARCHIVE PAGES
+		var archivePageMaker = function archivePageMaker(){
+			// create the pages
+			for ( var i in archives ){
+				var a = archives[i];
+				
+				var indexData = {
+					archiveYear: a.year,
+					archiveMonth: a.month,
+					archiveMonthString: a.monthString,
+					archiveUrl: i + '.html',
+					archives: archivesArray,
+					posts: archives[i].posts,
+					categories: categoriesArray
+				}
+				
+				for( var key in config ) {
+					indexData[key] = config[key];
+				}
+				
+				indexData.menu = returnMenu( blogFolder + '/' + indexData.archiveUrl );
+								
+				// read the template
+				var template = fs.readFileSync( templatesFolder + '/' + defaultBlogArchiveTemplate, {encoding: 'utf8'} ).toString();
+				
+				// mustache parse the template
+				var parse = mup( template, indexData, includes );
+			
+				// save it
+				var outFile = 'site/' + blogFolder + '/' + indexData.archiveUrl;
+			
+				frd.saveFile( outFile, parse );
+			}
+		}();
+		
+		
+		// CREATE THE CATEGORIES PAGES
+		var categoryPageMaker = function categoryPageMaker(){
+			for( var i in categoriesArray ){
+				
+				var indexData = {
+					category: categoriesArray[i].category,
+					categoryUrl: categoriesArray[i].url,
+					posts: categoriesArray[i].posts,
+					categories: categoriesArray,
+					archives: archivesArray
+				}
+				
+				for( var key in config ) {
+					indexData[key] = config[key];
+				}
+				
+				indexData.menu = returnMenu( blogFolder + '/' + indexData.categoryUrl );
+				
+				// read the template
+				var template = fs.readFileSync( templatesFolder + '/' + defaultBlogCategoryTemplate, {encoding: 'utf8'} ).toString();
+				
+				// mustache parse the template
+				var parse = mup( template, indexData, includes );
+			
+				// save it
+				var outFile = 'site/' + blogFolder + '/' + indexData.categoryUrl;
+			
+				frd.saveFile( outFile, parse );
+				
+			}
+		}();
+		
+		
+		
+		
+		
+		/////////////////////////
+		// INDEX PAGES
+		// normal paging
 		var allIndexes = Math.ceil( blogPosts.length / config.postsPerPage );
 		
 		// Index creating function
@@ -241,7 +429,9 @@ function whip(){
 				allPages: allIndexes,
 				thisPageNumber: index,
 				posts: blogPosts,
-				title: 'Blog'
+				title: 'Blog',
+				archives: archivesArray,
+				categories: categoriesArray
 			};
 			
 	
@@ -265,9 +455,9 @@ function whip(){
 	
 			// add the menu
 			if ( index === 1 ){
-				indexData.menu = returnMenu( blogFolder + '/index.html' );
+				indexData.menu = returnMenu( blogFolder + '/index.html', 'blog' );
 			} else {
-				indexData.menu = returnMenu( blogFolder + '/index-' + index + '.html' );
+				indexData.menu = returnMenu( blogFolder + '/index-' + index + '.html', 'blog' );
 			}
 			
 			
@@ -302,7 +492,7 @@ function whip(){
 				pagePosts = [];			
 			}
 		}
-		createIndex( pageNumber, pagePosts );
+		createIndex( pageNumber, pagePosts );		
 		
 	}
 	
