@@ -11,18 +11,18 @@
 	{{>header}}
 	
 	<h2>Posts</h2>
-	
+	<ul>	
 	{{#posts}}
-	<ul>
 		<li>
 			<a href="{{url}}">{{title}}</a><br />
 			{{date}}<br />
 			{{intro}}<br />
 			<small>ID: {{id}}</small>
 		</li>
-	</ul>
 	{{/posts}}	
-	
+	</ul>
+		
+	<h2>Paging</h2>
 	<h5>Page {{thisPageNumber}} of {{allPages}}</h5>
 
 	{{#prevPage}}
@@ -31,6 +31,20 @@
 	{{#nextPage}}
 		<a href="{{nextPage}}">Next page: {{nextPageNumber}}</a>
 	{{/nextPage}}
+	
+	<h2>Archives</h2>
+	<ul>
+	{{#archives}}
+		<li><a href="{{url}}" id="{{year}}-{{month}}">{{monthString}} {{year}}</a></li>
+	{{/archives}}
+	</ul>
+	
+	<h2>Categories</h2>
+	<ul>
+	{{#categories}}
+		<li><a href="{{url}}">{{category}}</a></li>
+	{{/categories}}
+	</ul>
 	
 </body>
 </html>
