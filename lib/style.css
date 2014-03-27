@@ -35,3 +35,7 @@ hr{
 .footer{
 	font-size: 12px;
 }
+
+.active{
+	color: #f8008e;
+}
