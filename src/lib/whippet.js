@@ -169,7 +169,8 @@ function whip(){
 			if ( !pageVars.template || pageVars.template.length === 0 )	{
 				pageVars.template = defaultPageTemplage;
 				
-				if ( i === pagemds.length-1 ) pageVars.template = defaultIndexTemplate;
+				//if ( i === pagemds.length-1 ) pageVars.template = defaultIndexTemplate;
+				if ( pagemds === 'index.md' ) pageVars.template = defaultIndexTemplate;
 			}
 			
 			for( var key in config ){
