@@ -189,6 +189,7 @@ function whip(){
 				var postDate = new Date( dateString[0], dateString[1]-1, dateString[2], dateString[3] | 0, dateString[4] | 0, dateString[5] | 0 );
 				pageVars.postDate = postDate;
 				pageVars.postDateFormatted = '' + postDate.getDate() + '. ' + ( postDate.getMonth() + 1 ) + '. ' + postDate.getFullYear();
+				pageVars.id = 'post-' + postDate.getDate() + '-' + ( postDate.getMonth() + 1 ) + '-' + postDate.getFullYear() + '-' + postDate.getHours() + '-' + postDate.getMinutes() + '-' + postDate.getSeconds();
 				blogPosts.push( pageVars );
 				rebuildBlogIndexes = true;				
 			}
