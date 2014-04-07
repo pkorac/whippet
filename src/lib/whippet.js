@@ -245,9 +245,6 @@ function whip(){
 		}	
 		blogPosts.sort( dateSorter );
 		blogPosts.reverse();
-		for ( var i in blogPosts ){
-			console.log( blogPosts[i].postDate );
-		}
 	
 	
 	
