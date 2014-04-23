@@ -244,7 +244,6 @@ function whip(){
 			return b.postDate - a.postDate;
 		}	
 		blogPosts.sort( dateSorter );
-		blogPosts.reverse();
 	
 	
 	
