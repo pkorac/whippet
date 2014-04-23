@@ -241,7 +241,7 @@ function whip(){
 		// POST SORTER
 		// sort posts by date
 		var dateSorter = function dateSorter( a, b){
-			return b.date - a.date;
+			return b.postDate - a.postDate;
 		}	
 		blogPosts.sort( dateSorter );
 		blogPosts.reverse();
