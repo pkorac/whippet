@@ -1,3 +1,41 @@
+/* Styles */
 body{
 	font-family: Helvetica;
+	color: #000;
+}
+
+a{
+	color: #1791b3;
+	text-decoration: none;
+}
+
+a:hover{
+	text-decoration: underline
+}
+
+code{
+	display: inline-block;
+	margin-top: 4px;
+	padding: 3px;
+	border: 1px solid #eee;
+	background: #f5f5f5;
+	border-radius: 4px;
+}
+
+
+hr{
+	border: none;
+	border-top: 1px solid #eee;
+}
+
+.signature{
+	font-size: 12px;
+}
+
+.footer{
+	font-size: 12px;
+}
+
+.active{
+	color: #f8008e;
 }

@@ -1,10 +1,9 @@
----
-title: Whippet.js
-tagline: A simple static website generator.
-hero-image: ../assets/image1.jpg
----
+# Whippet
+## Static site generator
 
-# Usage
+## This module is still under construction and is extremely unstable!
+
+## Usage
 
 Install
 ```npm install -g```
@@ -24,4 +23,15 @@ Watch the folder for changes and automatically build the site
 ```whippet watch```
 
 
-{{{signature}}}
+
+## How does it work?
+
+Config
+
+Folders
+
+Parsing
+
+
+## Folder structure
+

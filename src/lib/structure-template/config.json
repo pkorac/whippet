@@ -1,8 +1,14 @@
 {
 	"site": {
 		"title": "My site",
-		"author": "Peter"
+		"author": "Peter",
+		"url": "http://www.example.com",
+		"description": "Lovely site made with whippet",
+		"language": "en",
+		"categories": ["static website", "open source", "technology"],
+		"rssfile": "blogfeed.rss"
 	},
 	"blog": true,
-	"postsPerPage": 4
+	"postsPerPage": 10,
+	"introLength": 500
 }
