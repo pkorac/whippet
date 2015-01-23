@@ -14,7 +14,8 @@ var frd = require('./whippet/filer.js'),
 	searcher = require('./whippet/searchIndexer.js'),
 	util = require('util'),
 	path = require('path'),
-	fs = require('fs');
+	fs = require('fs'),
+	rss = require('rss');
 
 function whip(){
 	// DEFAULTS
@@ -31,7 +32,6 @@ function whip(){
 	var includesFolder = 'includes';
 	var templatesFolder = 'templates';
 	var usedFilesFile = 'site/.usedfiles.json';
-	
 	
 	
 	// Read configuration
@@ -246,6 +246,41 @@ function whip(){
 		blogPosts.sort( dateSorter );
 	
 	
+		/////////////////////////
+		// BUID the RSS feed
+
+		var feed = new rss({
+			title: config.site.title,
+		    description: config.site.description,
+		    feed_url: config.site.url + '/' + config.site.rssfile,
+		    site_url: config.site.url,
+		    image_url: config.site.url + '/assets/site-logo.jpg',
+		    managingEditor: config.site.author,
+		    webMaster: config.site.author,
+		    copyright: '©' + ( new Date().getFullYear() ) + ' ' + config.site.author,
+		    language: config.site.language,
+		    categories: config.site.categories,
+		    pubDate: (new Date()).toString()
+		});
+				
+		for ( var i = 0; i < blogPosts.length; i++ ){
+			var post = blogPosts[i];
+			feed.item({
+				title:  post.title,
+			    description: post.intro,
+			    url: config.site.url + '/' + blogFolder + '/' + post.url,
+			    guid: post.id,
+			    categories: config.site.categories,
+			    author: config.site.author,
+			    date: new Date()
+			});
+		}
+		
+		var feedXML = feed.xml({ indent: true });
+		
+		// write feed to a file
+		frd.saveFile( 'site/' + config.site.rssfile, feedXML );
+		
 	
 		/////////////////////////
 		// ARCHIVES
