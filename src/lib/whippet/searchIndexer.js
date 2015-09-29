@@ -8,7 +8,14 @@ exports.addToIndex = function addToIndex( page ){
 	page.url = page.url.substr( 0, page.url.lastIndexOf('.') ) + '.html';
 
 	// remove mustache tags
-	page.content = page.content.replace( /\{\{\{[\w\-\_\#\/\>]*\}\}\}/i, "" );
+	page.content = page.content.replace( /\{\{\{[\w\-\_\#\/\>]*\}\}\}/ig, "" );
+	page.content = page.content.replace( /\*+/ig, "" );
+	page.content = page.content.replace( /#+/ig, "" );
+	page.content = page.content.replace( /\>+/ig, "" );
+	page.content = page.content.replace( /\|+/ig, " " );
+	page.content = page.content.replace( /`+/ig, " " );	
+
+	page.content = page.content.replace( /(\n)+/ig, '');
 	
 	// to do: remove markdown tags or first parse, then remove html tags?
 	

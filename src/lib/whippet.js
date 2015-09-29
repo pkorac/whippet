@@ -540,7 +540,10 @@ function whip(){
 	
 	// SEARCH INDEX
 	//////////////////////////////////////////////////////
-	frd.saveFile( 'searchIndex.js', JSON.stringify( searcher.getSearchIndex() ) );
+	var searchIndexContents = JSON.stringify( searcher.getSearchIndex() );
+	frd.saveFile( 'site/searchIndex.js', searchIndexContents );
+	
+	
 	
 		
 	// HELPER FUNCTIONS
