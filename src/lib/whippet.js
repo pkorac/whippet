@@ -15,7 +15,8 @@ var frd = require('./whippet/filer.js'),
 	util = require('util'),
 	path = require('path'),
 	fs = require('fs'),
-	rss = require('rss');
+	rss = require('rss'),
+	xml = require('xml');
 
 function whip(){
 	// DEFAULTS
@@ -46,6 +47,7 @@ function whip(){
 	if ( fs.existsSync( usedFilesFile ) ){
 		usedFiles = JSON.parse( frd.readFile( usedFilesFile ) );
 	}
+	usedFiles = {};
 	
 	// CORE STRUCTURE
 	//////////////////////////////////////////////////////

@@ -20,7 +20,8 @@
     "highlight.js": "*",
     "marked": "*",
     "mustache": "*",
-    "rss": "*"
+    "rss": "*",
+    "xml": "1.*"
   },
   "repository": {
     "type": "git",
