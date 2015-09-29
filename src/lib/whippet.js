@@ -26,7 +26,8 @@ function whip(){
 	var defaultBlogIndexTemplate = 'blog-index.html';
 	var defaultBlogArchiveTemplate = 'blog-archive.html';
 	var defaultBlogCategoryTemplate = 'blog-category.html';
-	var defaultOtherCategory = 'other';
+	var defaultSitemapTemplate = 'sitemap.html';
+	var defaultOtherCategory = 'other';	
 	
 	var pagesFolder = 'pages';
 	var blogFolder = 'blog';
@@ -136,6 +137,8 @@ function whip(){
 		}
 	}
 	
+	var siteMapPages = [];
+	
 	//////////////////////////////////////////////////////	
 	// PAGES
 	var pagemds = frd.listFiles( pagesFolder );
@@ -183,6 +186,7 @@ function whip(){
 			
 			
 			// blog posts
+			var isBlogPost = false;
 			if ( pagemds[i].split( path.sep )[0] === 'blog' ){
 				var dateString = path.basename( pagemds[i], '.md' ).split('-');
 				for ( var j = 0; j < dateString.length; j++ ){
@@ -193,7 +197,8 @@ function whip(){
 				pageVars.postDateFormatted = '' + postDate.getDate() + '. ' + ( postDate.getMonth() + 1 ) + '. ' + postDate.getFullYear();
 				pageVars.id = 'post-' + postDate.getDate() + '-' + ( postDate.getMonth() + 1 ) + '-' + postDate.getFullYear() + '-' + postDate.getHours() + '-' + postDate.getMinutes() + '-' + postDate.getSeconds();
 				blogPosts.push( pageVars );
-				rebuildBlogIndexes = true;				
+				rebuildBlogIndexes = true;		
+				isBlogPost = true;		
 			}
 			
 					
@@ -204,7 +209,7 @@ function whip(){
 				content: pageVars.content,
 				url: pagemds[i]
 			} );
-		
+					
 			// mustache parse one (insert custom includes)
 			pageVars.content = mup( pageVars.content, includes );
 				
@@ -224,7 +229,17 @@ function whip(){
 			// write to a file
 			var outFile = 'site/'+ pagemds[i].substring( 0, pagemds[i].lastIndexOf('.') ) + '.html';
 			
-			if ( pagemds[i] === 'index.md' ) outFile = 'site/index.html'; // index.html
+			
+			if ( pagemds[i] === 'index.md' ) {
+				outFile = 'site/index.html'; // index.html
+			}
+			
+			// add page to siteMap
+			siteMapPages.push({
+				title: pageVars.title,
+				url: pagemds[i].substring( 0, pagemds[i].lastIndexOf('.') ) + '.html'
+			});
+			
 			
 			frd.saveFile( outFile, parse );	
 			
@@ -404,7 +419,7 @@ function whip(){
 				}
 				
 				indexData.menu = returnMenu( blogFolder + '/' + indexData.archiveUrl );
-								
+												
 				// read the template
 				var template = fs.readFileSync( templatesFolder + '/' + defaultBlogArchiveTemplate, {encoding: 'utf8'} ).toString();
 				
@@ -413,6 +428,13 @@ function whip(){
 			
 				// save it
 				var outFile = 'site/' + blogFolder + '/' + indexData.archiveUrl;
+				
+				// add it to the siteMap
+				siteMapPages.push({
+					title: 'Blog Archive: ' + indexData.archiveMonthString + ', ' + indexData.archiveYear,
+					url: blogFolder + '/' + indexData.archiveUrl
+				});
+				
 			
 				frd.saveFile( outFile, parse );
 			}
@@ -445,6 +467,12 @@ function whip(){
 			
 				// save it
 				var outFile = 'site/' + blogFolder + '/' + indexData.categoryUrl;
+				
+				// add it to the siteMap
+				siteMapPages.push({
+					title: 'Blog Category: ' + indexData.category,
+					url: blogFolder + '/' + indexData.categoryUrl
+				});
 			
 				frd.saveFile( outFile, parse );
 				
@@ -511,7 +539,7 @@ function whip(){
 			// save it
 			var outFile = 'site/' + blogFolder + '/' + 'index-' + index + '.html';
 			if ( index === 1 ) outFile = 'site/' + blogFolder + '/' + 'index.html';
-			
+						
 			frd.saveFile( outFile, parse );
 			
 		};
@@ -535,6 +563,12 @@ function whip(){
 		
 	}
 	
+	// add blog index to the sitemap
+	siteMapPages.push({
+		title: 'Blog',
+		url: blogFolder + '/index.html'
+	});
+	
 	
 	// update usedFiles file
 	frd.saveFile( usedFilesFile, JSON.stringify( usedFiles ) );
@@ -544,6 +578,40 @@ function whip(){
 	//////////////////////////////////////////////////////
 	var searchIndexContents = JSON.stringify( searcher.getSearchIndex() );
 	frd.saveFile( 'site/searchIndex.js', searchIndexContents );
+	
+	
+	
+	// SITEMAP
+	//////////////////////////////////////////////////////
+	var siteMap = {
+		title: 'Sitemap',
+		pages: siteMapPages
+	}
+
+	
+	// pupulate the page with default values
+	for( var key in config ){
+		siteMap[key] = config[key];
+	}
+			
+	// read the template
+	var siteMapTemplate = fs.readFileSync( templatesFolder + '/' + defaultSitemapTemplate, {encoding: 'utf8'} ).toString();
+		
+	// mustache parse the template
+	var sitemapParse = mup( siteMapTemplate, siteMap, includes );
+	
+	// save it
+	var sitemapOutFile = 'site/' + defaultSitemapTemplate;
+	
+	frd.saveFile( sitemapOutFile, sitemapParse );
+	
+/*
+	for( var i = 0; i< allPages.length; i++){
+		siteMap.pages.push( { page: allPages[i] } )
+	}
+	var xmlSiteMap = xml(siteMap);
+	frd.saveFile( 'site/sitemap.xml', xmlSiteMap);	
+*/
 	
 	
 	
