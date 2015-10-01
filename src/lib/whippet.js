@@ -581,7 +581,7 @@ function whip(){
 	
 	
 	
-	// SITEMAP
+	// SITEMAP HTML
 	//////////////////////////////////////////////////////
 	var siteMap = {
 		title: 'Sitemap',
@@ -593,6 +593,9 @@ function whip(){
 	for( var key in config ){
 		siteMap[key] = config[key];
 	}
+	
+	// add the menu
+	siteMap.menu = returnMenu( defaultSitemapTemplate );
 			
 	// read the template
 	var siteMapTemplate = fs.readFileSync( templatesFolder + '/' + defaultSitemapTemplate, {encoding: 'utf8'} ).toString();
@@ -605,16 +608,28 @@ function whip(){
 	
 	frd.saveFile( sitemapOutFile, sitemapParse );
 	
-/*
-	for( var i = 0; i< allPages.length; i++){
-		siteMap.pages.push( { page: allPages[i] } )
-	}
-	var xmlSiteMap = xml(siteMap);
-	frd.saveFile( 'site/sitemap.xml', xmlSiteMap);	
-*/
+	// SITEMAP XML
+	//////////////////////////////////////////////////////
+	var siteMapObj = {
+		urlset: [
+			{
+				url: []
+			},
+			{ _attr: { xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9" } }
+		]
+	};
 	
-	
-	
+
+	for ( var i = 0; i < siteMapPages.length; i++ ){
+		siteMapObj.urlset[0].url.push({ loc: config.site.url + '/' + siteMapPages[i].url });
+	}	
+	var firstLine = '<?xml version="1.0" encoding="UTF-8"?>';
+	var xmlParsed = firstLine + xml( siteMapObj );
+
+	// save it
+	var sitemapOutFile = 'site/' + defaultSitemapTemplate.replace('.html', '.xml');
+	frd.saveFile( sitemapOutFile, xmlParsed );
+
 		
 	// HELPER FUNCTIONS
 	
