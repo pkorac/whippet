@@ -611,18 +611,19 @@ function whip(){
 	// SITEMAP XML
 	//////////////////////////////////////////////////////
 	var siteMapObj = {
-		urlset: [
-			{
-				url: []
-			},
-			{ _attr: { xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9" } }
-		]
+		urlset: []
 	};
 	
 
 	for ( var i = 0; i < siteMapPages.length; i++ ){
-		siteMapObj.urlset[0].url.push({ loc: config.site.url + '/' + siteMapPages[i].url });
-	}	
+		var obj = {
+			url: [{ loc: config.site.url + '/' + siteMapPages[i].url }]
+		};
+		siteMapObj.urlset.push( obj );
+	}
+	
+	siteMapObj.urlset.push( { _attr: { xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9" } } );
+	
 	var firstLine = '<?xml version="1.0" encoding="UTF-8"?>';
 	var xmlParsed = firstLine + xml( siteMapObj );
 
