@@ -1,33 +1,33 @@
 {
-  "name": "whippet",
-  "version": "0.1.9",
-  "description": "Static website generator",
-  "main": "./lib/whippet",
-  "bin": {
-    "whippet": "./bin/whippet"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "static website generator",
-    "jekyll"
-  ],
-  "author": "Peter Koraca",
-  "license": "MIT",
-  "dependencies": {
-    "front-matter": "*",
-    "highlight.js": "*",
-    "marked": "*",
-    "mustache": "*",
-    "rss": "*",
-    "xml": "1.*"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:pkorac/whippet.git"
-  },
-  "bugs": {
-    "url": "https://github.com/pkorac/whippet/issues"
-  }
+	"name": "whippet",
+	"version": "0.2.0",
+	"description": "Static website generator",
+	"main": "./lib/whippet",
+	"bin": {
+		"whippet": "./bin/whippet"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"static website generator",
+		"jekyll"
+	],
+	"author": "Peter Koraca",
+	"license": "MIT",
+	"dependencies": {
+		"front-matter": "*",
+		"highlight.js": "*",
+		"marked": "*",
+		"mustache": "*",
+		"rss": "*",
+		"xml": "1.*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:pkorac/whippet.git"
+	},
+	"bugs": {
+		"url": "https://github.com/pkorac/whippet/issues"
+	}
 }
